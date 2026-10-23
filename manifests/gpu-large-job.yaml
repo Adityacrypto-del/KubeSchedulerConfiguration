@@ -1,0 +1,16 @@
+# Large job for KubeSchedulerConfiguration GPU bin-packing: a single pod that
+# needs a whole node's 4 (fake) nvidia.com/gpu. It only fits if some worker
+# still has all of its GPUs free.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-large-job
+  labels:
+    app: gpu-large-job
+spec:
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        limits:
+          nvidia.com/gpu: 4

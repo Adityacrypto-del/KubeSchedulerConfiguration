@@ -1,4 +1,4 @@
-# gpu-scheduler
+# KubeSchedulerConfiguration
 
 GPU-aware scheduling for Kubernetes, built entirely from configuration.
 
@@ -84,7 +84,7 @@ Later phases add all-or-nothing scheduling for multi-Pod jobs and keep the Pods 
 
 ## Results
 
-GPU bin-packing: on a kind cluster with three workers of four fake GPUs each, a Deployment of six 1-GPU Pods was placed 2/2/2 by the default scheduler and 4/2/0 with this configuration. Both leave 6 GPUs free, but only the packed placement keeps a whole node free for a 4-GPU job. Details and reproduction steps are in [docs/gpu-bin-packing.md](docs/gpu-bin-packing.md).
+GPU bin-packing: on a kind cluster with three workers of four fake GPUs each, a Deployment of six 1-GPU Pods was placed 2/2/2 by the default scheduler and 4/2/0 with this configuration. A 4-GPU Pod submitted afterwards stayed Pending with the default scheduler (Insufficient nvidia.com/gpu on every worker) and was Running with this configuration, on the worker the packing left empty. Details and reproduction steps are in [docs/gpu-bin-packing.md](docs/gpu-bin-packing.md).
 
 ## Roadmap
 
@@ -124,8 +124,8 @@ docker run hello-world
 The cluster config mounts `scheduler-config.yaml` from an absolute path. If your clone lives somewhere else, update `hostPath` in `kind-config.yaml` first.
 
 ```bash
-git clone <this-repo-url> gpu-scheduler
-cd gpu-scheduler
+git clone https://github.com/Adityacrypto-del/KubeSchedulerConfiguration.git
+cd KubeSchedulerConfiguration
 kind create cluster --name sched-dev --config kind-config.yaml
 kubectl get nodes
 ```
