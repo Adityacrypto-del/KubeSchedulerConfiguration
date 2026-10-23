@@ -1,0 +1,35 @@
+# KubeSchedulerConfiguration for KubeSchedulerConfiguration: GPU bin-packing.
+# Configures the built-in kube-scheduler to pack pods requesting nvidia.com/gpu
+# onto as few nodes as possible.
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  # Required: when --config is set, the scheduler ignores its --kubeconfig flag.
+  kubeconfig: /etc/kubernetes/scheduler.conf
+profiles:
+  - schedulerName: default-scheduler
+    plugins:
+      score:
+        enabled:
+          # Raise the weight so packing dominates the other score plugins.
+          - name: NodeResourcesFit
+            weight: 5
+    pluginConfig:
+      - name: NodeResourcesFit
+        args:
+          scoringStrategy:
+            # Favour nodes that are already busy instead of the emptiest ones.
+            type: MostAllocated
+            resources:
+              - name: nvidia.com/gpu
+                weight: 10
+              - name: cpu
+                weight: 1
+              - name: memory
+                weight: 1
+      - name: PodTopologySpread
+        args:
+          # Clear the system default spreading constraints, which would
+          # otherwise push replicas of the same workload onto different nodes.
+          defaultingType: List
+          defaultConstraints: []

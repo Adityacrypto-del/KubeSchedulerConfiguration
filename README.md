@@ -82,6 +82,10 @@ can run a 4-GPU job                still run a 4-GPU job
 
 Later phases add all-or-nothing scheduling for multi-Pod jobs and keep the Pods of one job close together in the cluster topology.
 
+## Results
+
+GPU bin-packing: on a kind cluster with three workers of four fake GPUs each, a Deployment of six 1-GPU Pods was placed 2/2/2 by the default scheduler and 4/2/0 with this configuration. Both leave 6 GPUs free, but only the packed placement keeps a whole node free for a 4-GPU job. Details and reproduction steps are in [docs/gpu-bin-packing.md](docs/gpu-bin-packing.md).
+
 ## Roadmap
 
 | Phase | Goal | Approach |

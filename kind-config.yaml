@@ -1,0 +1,34 @@
+# kind cluster for KubeSchedulerConfiguration: 1 control plane, 3 workers, with the
+# built-in kube-scheduler started from scheduler-config.yaml in this repository.
+#
+# NOTE: the extraMounts hostPath below is an absolute, machine-specific path.
+# If you clone this repository somewhere else, update it to the absolute path
+# of scheduler-config.yaml in your clone.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.37.0
+    extraMounts:
+      - hostPath: /Users/adityaarasamangalam/KubeSchedulerConfiguration/scheduler-config.yaml
+        containerPath: /etc/kubernetes/scheduler-config.yaml
+        readOnly: true
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        scheduler:
+          extraArgs:
+            - name: config
+              value: /etc/kubernetes/scheduler-config.yaml
+          extraVolumes:
+            - name: scheduler-config
+              hostPath: /etc/kubernetes/scheduler-config.yaml
+              mountPath: /etc/kubernetes/scheduler-config.yaml
+              readOnly: true
+              pathType: File
+  - role: worker
+    image: kindest/node:v1.37.0
+  - role: worker
+    image: kindest/node:v1.37.0
+  - role: worker
+    image: kindest/node:v1.37.0
