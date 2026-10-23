@@ -1,0 +1,221 @@
+# KubeSchedulerConfiguration gang scheduling demo.
+# Deadlock demo, with gang scheduling: the same interleaved job-a and job-b,
+# each gated by its own Workload/PodGroup with minCount 4.
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: Workload
+metadata:
+  name: job-a
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  podGroupTemplates:
+    - name: workers
+      schedulingPolicy:
+        gang:
+          minCount: 4
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PodGroup
+metadata:
+  name: job-a-workers
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  workloadRef:
+    workloadName: job-a
+    templateName: workers
+  schedulingPolicy:
+    gang:
+      minCount: 4
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: Workload
+metadata:
+  name: job-b
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  podGroupTemplates:
+    - name: workers
+      schedulingPolicy:
+        gang:
+          minCount: 4
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PodGroup
+metadata:
+  name: job-b-workers
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  workloadRef:
+    workloadName: job-b
+    templateName: workers
+  schedulingPolicy:
+    gang:
+      minCount: 4
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-a-0
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  schedulingGroup:
+    podGroupName: job-a-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-b-0
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  schedulingGroup:
+    podGroupName: job-b-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-a-1
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  schedulingGroup:
+    podGroupName: job-a-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-b-1
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  schedulingGroup:
+    podGroupName: job-b-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-a-2
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  schedulingGroup:
+    podGroupName: job-a-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-b-2
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  schedulingGroup:
+    podGroupName: job-b-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-a-3
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-a
+spec:
+  schedulingGroup:
+    podGroupName: job-a-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-b-3
+  labels:
+    app.kubernetes.io/part-of: gang-demo
+    job: job-b
+spec:
+  schedulingGroup:
+    podGroupName: job-b-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2

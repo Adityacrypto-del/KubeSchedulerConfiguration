@@ -50,6 +50,8 @@ flowchart TD
 | kube-scheduler | Places Pods on nodes | `scheduler-config.yaml` (`KubeSchedulerConfiguration`) |
 | kind | Local multi-node cluster in Docker | `kind-config.yaml` |
 | Fake GPU capacity | Simulates GPUs on local nodes | Node status patch for `nvidia.com/gpu`, scripted |
+| GenericWorkload feature gate | Turns on the Workload and PodGroup APIs and the `GangScheduling` plugin (beta, off by default in v1.37) | `featureGates` and `runtimeConfig` (`scheduling.k8s.io/v1beta1`) in `kind-config.yaml` |
+| Workload / PodGroup | Native gang (all-or-nothing) scheduling for multi-Pod jobs | Manifests in `manifests/gang/`; Pods reference a PodGroup with `spec.schedulingGroup.podGroupName` |
 | Kyverno | Admission-time policy enforcement | `ClusterPolicy` manifests in `policies/` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
 | KWOK | Simulates 1,000 nodes for benchmarks | Node and workload templates in `benchmarks/` |
@@ -85,6 +87,10 @@ Later phases add all-or-nothing scheduling for multi-Pod jobs and keep the Pods 
 ## Results
 
 GPU bin-packing: on a kind cluster with three workers of four fake GPUs each, a Deployment of six 1-GPU Pods was placed 2/2/2 by the default scheduler and 4/2/0 with this configuration. A 4-GPU Pod submitted afterwards stayed Pending with the default scheduler (Insufficient nvidia.com/gpu on every worker) and was Running with this configuration, on the worker the packing left empty. Details and reproduction steps are in [docs/gpu-bin-packing.md](docs/gpu-bin-packing.md).
+
+### Gang scheduling
+
+With 6 of 12 GPUs free, a 4-pod job needing 8 GPUs started 3 Pods and held 6 GPUs without gang scheduling; with a PodGroup of `minCount: 4`, it bound no Pods and held no GPUs. Two such jobs created interleaved on an empty cluster both stalled at 3 of 4 Pods without gang scheduling, while with gang scheduling one job ran all 4 Pods and the other waited, then started once the first was deleted. Details and reproduction steps are in [docs/gang-scheduling.md](docs/gang-scheduling.md).
 
 ## Roadmap
 
