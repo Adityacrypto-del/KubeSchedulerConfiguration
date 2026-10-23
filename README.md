@@ -1,1 +1,160 @@
-# KubeSchedulerConfiguration
+# gpu-scheduler
+
+GPU-aware scheduling for Kubernetes, built entirely from configuration.
+
+## Overview
+
+Kubernetes ships with a scheduler designed for general workloads like web services. It places Pods one at a time and, by default, spreads them across nodes so that no single machine gets too busy. That is a sensible choice for stateless services, but it works against GPU workloads such as AI training and batch jobs.
+
+Three problems show up as soon as a cluster runs GPU jobs at scale:
+
+- **Fragmentation.** Small GPU jobs get scattered across many nodes. The cluster may have plenty of free GPUs in total, yet no single node has enough free to run a large job.
+- **Partial starts and deadlock.** A distributed training job may need eight Pods running together. The default scheduler can start some of them and then run out of capacity. Those Pods hold expensive GPUs while doing nothing, and two such jobs can block each other indefinitely.
+- **Poor placement.** Pods of the same job that communicate constantly can land on distant nodes, racks or zones, slowing the whole job down.
+
+This project addresses those problems by reconfiguring the built-in kube-scheduler and combining it with established open-source tools. The result gives GPU workloads bin-packing, gang (all-or-nothing) scheduling and topology-aware placement. Each configuration is benchmarked on a simulated 1,000-node cluster, and the final setup is validated on a real NVIDIA GPU server running a real CUDA workload.
+
+## Design principles
+
+- **Configuration over code.** There is no forked or custom-written scheduler. Every behaviour comes from declarative configuration kept in this repository: the `KubeSchedulerConfiguration`, the kind cluster definition, Helm values for third-party components and Kyverno policies. Any change to scheduling behaviour is a reviewed change to a file in Git.
+- **Upstream first.** The project builds on upstream Kubernetes features, such as the scheduling framework's plugins and the Workload API for gang scheduling, and on CNCF ecosystem tools. Nothing here depends on patching Kubernetes itself.
+- **Measured, not assumed.** Every claim about better placement is backed by a reproducible benchmark that compares this setup against the default scheduler and other approaches on the same workloads.
+
+## Architecture
+
+Development runs on a local kind cluster. The control plane's kube-scheduler starts with a custom configuration file mounted from this repository. Worker nodes advertise GPUs as the extended resource `nvidia.com/gpu`; locally these are simulated, and on the GPU server they are real devices reported by the NVIDIA device plugin. Kyverno sits in the admission path and enforces policy on every GPU workload before it reaches the scheduler. For large-scale benchmarks, KWOK simulates up to 1,000 nodes without running real kubelets.
+
+```mermaid
+flowchart TD
+    user["kubectl / GitOps"] --> api["kube-apiserver"]
+    api <-->|validate / mutate| kyverno["Kyverno admission policies"]
+    api --> sched["kube-scheduler<br/>custom KubeSchedulerConfiguration"]
+    sched --> w1["worker 1<br/>nvidia.com/gpu: 4"]
+    sched --> w2["worker 2<br/>nvidia.com/gpu: 4"]
+    sched --> w3["worker 3<br/>nvidia.com/gpu: 4"]
+
+    subgraph bench["Scale benchmark"]
+        kwok["KWOK: 1,000 simulated GPU nodes"]
+    end
+
+    subgraph hw["Real hardware validation"]
+        operator["NVIDIA GPU Operator"] --> gpus["Real NVIDIA GPUs"]
+    end
+
+    sched -.-> kwok
+    sched -.-> operator
+```
+
+| Component | Role | How it is configured |
+| --- | --- | --- |
+| kube-scheduler | Places Pods on nodes | `scheduler-config.yaml` (`KubeSchedulerConfiguration`) |
+| kind | Local multi-node cluster in Docker | `kind-config.yaml` |
+| Fake GPU capacity | Simulates GPUs on local nodes | Node status patch for `nvidia.com/gpu`, scripted |
+| Kyverno | Admission-time policy enforcement | `ClusterPolicy` manifests in `policies/` |
+| Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
+| KWOK | Simulates 1,000 nodes for benchmarks | Node and workload templates in `benchmarks/` |
+| NVIDIA GPU Operator | Drivers, device plugin, feature discovery and metrics on real hardware | Helm values |
+
+## How it works
+
+For every unscheduled Pod, the scheduler runs two phases. **Filtering** removes nodes that cannot run the Pod, for example because they lack enough free GPUs. **Scoring** ranks the remaining nodes, and the Pod is bound to the highest-scoring one.
+
+By default, the `NodeResourcesFit` plugin scores nodes with the `LeastAllocated` strategy, which favours emptier nodes. On top of that, the default `PodTopologySpread` constraints nudge replicas of the same workload onto different nodes. Together, they spread GPU Pods out.
+
+This project changes the scoring, not the code:
+
+- `NodeResourcesFit` uses the `MostAllocated` strategy, which favours nodes that are already busy. GPUs are weighted ten times more heavily than CPU and memory.
+- The score weight of `NodeResourcesFit` is raised so that packing dominates other scoring plugins.
+- The default topology spread constraints are cleared, so they no longer pull replicas apart.
+
+The effect, with three nodes of four GPUs each and six Pods that each need one GPU:
+
+```text
+Default scheduler (spread)         This configuration (packed)
+
+node 1  [x][x][ ][ ]               node 1  [x][x][x][x]
+node 2  [x][x][ ][ ]               node 2  [x][x][ ][ ]
+node 3  [x][x][ ][ ]               node 3  [ ][ ][ ][ ]
+
+6 GPUs free, but no node           6 GPUs free, and node 3 can
+can run a 4-GPU job                still run a 4-GPU job
+```
+
+Later phases add all-or-nothing scheduling for multi-Pod jobs and keep the Pods of one job close together in the cluster topology.
+
+## Roadmap
+
+| Phase | Goal | Approach |
+| --- | --- | --- |
+| GPU bin-packing | Eliminate GPU fragmentation | Built-in scheduler, `NodeResourcesFit` with `MostAllocated` weighted on `nvidia.com/gpu` |
+| Gang scheduling | Start multi-Pod jobs all at once or not at all | Native Workload API and `GangScheduling` plugin, compared with Volcano or Kueue |
+| Topology-aware placement | Keep a job's Pods in the same rack or zone | Node topology labels with affinity and scoring configuration |
+| Policy enforcement | Make the rules impossible to bypass | Kyverno policies: GPU limits required, GPU Pods routed to the right scheduler, team labels enforced |
+| Scale benchmark | Prove the gains at realistic scale | 1,000 KWOK nodes; throughput, p50 and p99 scheduling latency, GPU fragmentation, gang completion time |
+| GitOps | Apply everything declaratively from Git | Argo CD syncing this repository |
+| Real hardware validation | Run real GPU workloads under this configuration | k3s or kubeadm with the NVIDIA GPU Operator via Helm, running a CUDA workload |
+
+## Getting started
+
+### Prerequisites
+
+This project is developed on macOS with Apple silicon. Real GPUs are not needed for local development, because GPU capacity is simulated.
+
+Install [Homebrew](https://brew.sh), then the tools:
+
+```bash
+brew install --cask orbstack
+brew install go kubectl kind helm kwok
+```
+
+Open OrbStack once so it starts the container runtime, and point Docker at it:
+
+```bash
+open -a OrbStack
+docker context use orbstack
+docker run hello-world
+```
+
+### Create the cluster
+
+The cluster config mounts `scheduler-config.yaml` from an absolute path. If your clone lives somewhere else, update `hostPath` in `kind-config.yaml` first.
+
+```bash
+git clone <this-repo-url> gpu-scheduler
+cd gpu-scheduler
+kind create cluster --name sched-dev --config kind-config.yaml
+kubectl get nodes
+```
+
+You should see one control-plane node and three workers, all `Ready`.
+
+### Clean up
+
+```bash
+kind delete cluster --name sched-dev
+```
+
+## Repository layout
+
+```text
+.
+├── scheduler-config.yaml   # KubeSchedulerConfiguration for the built-in scheduler
+├── kind-config.yaml        # local cluster: 1 control plane, 3 workers, scheduler config mounted
+├── manifests/              # test and example workloads
+├── policies/               # Kyverno ClusterPolicies
+├── scripts/                # repeatable setup and comparison scripts
+├── benchmarks/             # KWOK node templates, workload generators and results
+└── docs/                   # per-phase design notes and results
+```
+
+## Tested with
+
+| Tool | Version |
+| --- | --- |
+| Kubernetes (kind node image) | v1.37.0 |
+| kubectl | v1.37.1 |
+| kind | v0.33.0 |
+| Helm | 4.3.1 |
+| KWOK | 0.8.0 |
+| Go | 1.27.3 |
+| Platform | macOS on Apple silicon, OrbStack |
