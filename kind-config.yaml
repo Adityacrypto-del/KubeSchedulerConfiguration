@@ -9,8 +9,11 @@ apiVersion: kind.x-k8s.io/v1alpha4
 # Native gang scheduling: the Workload and PodGroup APIs and the GangScheduling
 # scheduler plugin are beta in v1.37 and off by default. The GenericWorkload
 # gate is applied to every component; the beta API group must be served too.
+# TopologyAwareWorkloadScheduling (alpha) adds PodGroup schedulingConstraints,
+# which keep all pods of a group within one topology domain, such as a rack.
 featureGates:
   GenericWorkload: true
+  TopologyAwareWorkloadScheduling: true
 runtimeConfig:
   "scheduling.k8s.io/v1beta1": "true"
 nodes:

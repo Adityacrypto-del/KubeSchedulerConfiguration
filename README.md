@@ -51,6 +51,7 @@ flowchart TD
 | kind | Local multi-node cluster in Docker | `kind-config.yaml` |
 | Fake GPU capacity | Simulates GPUs on local nodes | Node status patch for `nvidia.com/gpu`, scripted |
 | GenericWorkload feature gate | Turns on the Workload and PodGroup APIs and the `GangScheduling` plugin (beta, off by default in v1.37) | `featureGates` and `runtimeConfig` (`scheduling.k8s.io/v1beta1`) in `kind-config.yaml` |
+| TopologyAwareWorkloadScheduling feature gate | Adds PodGroup `schedulingConstraints.topology`, keeping a group's Pods within one topology domain such as a rack (alpha, off by default in v1.37) | `featureGates` in `kind-config.yaml`; constraints in `manifests/topology/` |
 | Workload / PodGroup | Native gang (all-or-nothing) scheduling for multi-Pod jobs | Manifests in `manifests/gang/`; Pods reference a PodGroup with `spec.schedulingGroup.podGroupName` |
 | Kyverno | Admission-time policy enforcement | `ClusterPolicy` manifests in `policies/` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
@@ -91,6 +92,10 @@ GPU bin-packing: on a kind cluster with three workers of four fake GPUs each, a 
 ### Gang scheduling
 
 With 6 of 12 GPUs free, a 4-pod job needing 8 GPUs started 3 Pods and held 6 GPUs without gang scheduling; with a PodGroup of `minCount: 4`, it bound no Pods and held no GPUs. Two such jobs created interleaved on an empty cluster both stalled at 3 of 4 Pods without gang scheduling, while with gang scheduling one job ran all 4 Pods and the other waited, then started once the first was deleted. Details and reproduction steps are in [docs/gang-scheduling.md](docs/gang-scheduling.md).
+
+### Topology-aware placement
+
+With free GPUs spread unevenly across two racks, bin-packing alone placed a 4-pod gang job on the busiest nodes and split it across rack-1 and rack-2. Adding a PodGroup topology constraint on `topology.rack` kept all 4 Pods in rack-1, still packed within the rack. Details and reproduction steps are in [docs/topology-aware-placement.md](docs/topology-aware-placement.md).
 
 ## Roadmap
 

@@ -1,0 +1,112 @@
+# KubeSchedulerConfiguration topology-aware placement demo.
+# Without topology: a 4-pod gang job (1 GPU each, minCount 4) with no
+# topology constraint. Bin-packing alone decides where each pod goes.
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: Workload
+metadata:
+  name: trainer
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  podGroupTemplates:
+    - name: workers
+      schedulingPolicy:
+        gang:
+          minCount: 4
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PodGroup
+metadata:
+  name: trainer-workers
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  workloadRef:
+    workloadName: trainer
+    templateName: workers
+  schedulingPolicy:
+    gang:
+      minCount: 4
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-0
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  schedulingGroup:
+    podGroupName: trainer-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-1
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  schedulingGroup:
+    podGroupName: trainer-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-2
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  schedulingGroup:
+    podGroupName: trainer-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trainer-3
+  labels:
+    app.kubernetes.io/part-of: topology-demo
+    job: trainer
+spec:
+  schedulingGroup:
+    podGroupName: trainer-workers
+  containers:
+    - name: pause
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 1

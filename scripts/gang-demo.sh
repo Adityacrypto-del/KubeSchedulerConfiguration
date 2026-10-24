@@ -34,10 +34,13 @@ case "$DEMO/$MODE" in
 esac
 
 echo "== Cleaning up previous demo objects"
-kubectl delete pods -l "$SELECTOR" --ignore-not-found --wait=true
+for sel in "$SELECTOR" "app.kubernetes.io/part-of=topology-demo"; do
+  kubectl delete pods -l "$sel" --ignore-not-found --wait=true
+  kubectl delete podgroups.scheduling.k8s.io,workloads.scheduling.k8s.io -l "$sel" --ignore-not-found --wait=true
+done
 kubectl delete deployment gpu-test --ignore-not-found --wait=true
+kubectl delete pod gpu-large-job --ignore-not-found --wait=true
 kubectl wait --for=delete pod -l app=gpu-test --timeout=60s 2>/dev/null || true
-kubectl delete podgroups.scheduling.k8s.io,workloads.scheduling.k8s.io -l "$SELECTOR" --ignore-not-found --wait=true
 
 if [[ "$DEMO" == "partial" ]]; then
   echo "== Filling 6 of 12 GPUs with manifests/gpu-test.yaml"
