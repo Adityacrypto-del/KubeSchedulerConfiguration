@@ -99,7 +99,7 @@ first placement status: minCount (4) cannot be satisfied: 3 scheduled, 0 remaini
 pod group preemption: No preemption victims found for incoming preemptor
 ```
 
-This message is from the cluster with `TopologyAwareWorkloadScheduling` also enabled (see [topology-aware placement](topology-aware-placement.md)): that gate routes gang groups through the placement-based scheduling algorithm, which changed the wording (a group without a topology constraint has one candidate placement, the whole cluster) but not the outcome.
+This message, and the one quoted in the deadlock demo below, are from the cluster with `TopologyAwareWorkloadScheduling` also enabled (see [topology-aware placement](topology-aware-placement.md)): that gate routes gang groups through the placement-based scheduling algorithm, which changed the wording (a group without a topology constraint has one candidate placement, the whole cluster) but not the outcome.
 
 "3 scheduled" here refers to the placement attempt inside the group cycle: the scheduler found room for 3 Pods. That is fewer than `minCount`, so it bound none of them. All 4 trainer Pods had no node, and the trainer held 0 GPUs.
 
@@ -119,7 +119,8 @@ Without gang, each job got one Pod on each worker (job-a-0 and job-b-0 on sched-
 With gang, job-a's 4 Pods were bound together: two on sched-dev-worker3 and two on sched-dev-worker. The bin-packing configuration kept sched-dev-worker2 free. job-b bound nothing:
 
 ```text
-pod group is unschedulable, minCount (4) cannot be satisfied: 2 scheduled, 1 remaining,
+pod group is unschedulable, pod group is unschedulable, 0/1 placements are available,
+first placement status: minCount (4) cannot be satisfied: 2 scheduled, 1 remaining,
 pod group preemption: No preemption victims found for incoming preemptor
 ```
 
