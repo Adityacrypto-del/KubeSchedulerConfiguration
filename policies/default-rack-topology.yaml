@@ -1,0 +1,29 @@
+# Adds a rack topology constraint to PodGroups created without
+# schedulingConstraints, so a gang job stays within one rack (node label
+# topology.rack) by default. A PodGroup that sets its own schedulingConstraints
+# is left unchanged. The field is immutable, so this runs only on CREATE.
+# Applies only to namespaces labelled gpu-policy=enforced.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: default-rack-topology
+spec:
+  background: false
+  rules:
+    - name: add-rack-topology
+      match:
+        any:
+          - resources:
+              kinds:
+                - scheduling.k8s.io/v1beta1/PodGroup
+              operations:
+                - CREATE
+              namespaceSelector:
+                matchLabels:
+                  gpu-policy: enforced
+      mutate:
+        patchStrategicMerge:
+          spec:
+            +(schedulingConstraints):
+              topology:
+                - key: topology.rack

@@ -53,7 +53,7 @@ flowchart TD
 | GenericWorkload feature gate | Turns on the Workload and PodGroup APIs and the `GangScheduling` plugin (beta, off by default in v1.37) | `featureGates` and `runtimeConfig` (`scheduling.k8s.io/v1beta1`) in `kind-config.yaml` |
 | TopologyAwareWorkloadScheduling feature gate | Adds PodGroup `schedulingConstraints.topology`, keeping a group's Pods within one topology domain such as a rack (alpha, off by default in v1.37) | `featureGates` in `kind-config.yaml`; constraints in `manifests/topology/` |
 | Workload / PodGroup | Native gang (all-or-nothing) scheduling for multi-Pod jobs | Manifests in `manifests/gang/`; Pods reference a PodGroup with `spec.schedulingGroup.podGroupName` |
-| Kyverno | Admission-time policy enforcement | `ClusterPolicy` manifests in `policies/` |
+| Kyverno | Admission-time policy enforcement for GPU workloads in namespaces labelled `gpu-policy=enforced` | Helm chart pinned in `scripts/install-kyverno.sh` with `deploy/kyverno/values.yaml`; `ClusterPolicy` manifests in `policies/` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
 | KWOK | Simulates 1,000 nodes for benchmarks | Node and workload templates in `benchmarks/` |
 | NVIDIA GPU Operator | Drivers, device plugin, feature discovery and metrics on real hardware | Helm values |
@@ -96,6 +96,10 @@ With 6 of 12 GPUs free, a 4-pod job needing 8 GPUs started 3 Pods and held 6 GPU
 ### Topology-aware placement
 
 With free GPUs spread unevenly across two racks, bin-packing alone placed a 4-pod gang job on the busiest nodes and split it across rack-1 and rack-2. Adding a PodGroup topology constraint on `topology.rack` kept all 4 Pods in rack-1, still packed within the rack. Details and reproduction steps are in [docs/topology-aware-placement.md](docs/topology-aware-placement.md).
+
+### Policy enforcement
+
+With Kyverno v1.19.2 and four policies scoped to namespaces labelled `gpu-policy=enforced`, GPU Pods without a `team` label, containers asking for more than 4 GPUs and `job-type: distributed` Pods without a PodGroup were all rejected with a message saying what to fix, while their correct counterparts were allowed. A PodGroup created without scheduling constraints was stored with a `topology.rack` constraint added. The gang, topology and bin-packing demos gave the same results as before. Details and reproduction steps are in [docs/policy-enforcement.md](docs/policy-enforcement.md).
 
 ## Roadmap
 

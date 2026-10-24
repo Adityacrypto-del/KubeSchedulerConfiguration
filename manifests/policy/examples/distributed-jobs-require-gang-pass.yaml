@@ -1,0 +1,22 @@
+# Passes distributed-jobs-require-gang: labelled distributed and joins a PodGroup.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gang-pass
+  namespace: ml-team-a
+  labels:
+    app.kubernetes.io/part-of: policy-demo
+    team: ml-team-a
+    job-type: distributed
+spec:
+  schedulingGroup:
+    podGroupName: policy-demo-workers
+  containers:
+    - name: main
+      image: registry.k8s.io/pause:3.10
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          nvidia.com/gpu: 2

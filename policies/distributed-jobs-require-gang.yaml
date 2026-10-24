@@ -1,0 +1,32 @@
+# Pods labelled `job-type: distributed` must join a PodGroup through
+# spec.schedulingGroup.podGroupName, so they are gang scheduled (all or
+# nothing) instead of starting partially. Applies only to namespaces labelled
+# gpu-policy=enforced.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: distributed-jobs-require-gang
+spec:
+  background: false
+  rules:
+    - name: distributed-pods-need-podgroup
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              operations:
+                - CREATE
+              selector:
+                matchLabels:
+                  job-type: distributed
+              namespaceSelector:
+                matchLabels:
+                  gpu-policy: enforced
+      validate:
+        failureAction: Enforce
+        message: "Pods labelled `job-type: distributed` must reference a PodGroup in spec.schedulingGroup.podGroupName so the job is gang scheduled."
+        pattern:
+          spec:
+            schedulingGroup:
+              podGroupName: "?*"

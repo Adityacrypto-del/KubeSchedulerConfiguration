@@ -1,0 +1,13 @@
+# default-rack-topology mutates this PodGroup: it has no schedulingConstraints,
+# so the policy adds topology with key topology.rack.
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PodGroup
+metadata:
+  name: topology-unset
+  namespace: ml-team-a
+  labels:
+    app.kubernetes.io/part-of: policy-demo
+spec:
+  schedulingPolicy:
+    gang:
+      minCount: 2

@@ -1,0 +1,8 @@
+# Namespace for GPU workloads that the Kyverno policies in policies/ apply to.
+# The policies match only namespaces labelled gpu-policy=enforced.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ml-team-a
+  labels:
+    gpu-policy: enforced

@@ -1,0 +1,18 @@
+# Helm values for Kyverno in KubeSchedulerConfiguration.
+# Chart kyverno/kyverno, pinned in scripts/install-kyverno.sh.
+# Only settings that differ from the chart defaults are listed here.
+
+config:
+  # Keep the API server from sending kube-system and kyverno requests to the
+  # Kyverno webhooks at all. The policies in policies/ also match only
+  # namespaces labelled gpu-policy=enforced.
+  webhooks:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values:
+            - kube-system
+            - kyverno
+  # Also exclude the kyverno namespace from the engine's resource filters.
+  excludeKyvernoNamespace: true

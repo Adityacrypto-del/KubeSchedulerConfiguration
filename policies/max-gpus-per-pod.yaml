@@ -1,0 +1,39 @@
+# Rejects any container that requests more nvidia.com/gpu than one node can
+# hold. Such a Pod could never be scheduled and would stay Pending forever.
+# Applies only to namespaces labelled gpu-policy=enforced.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: max-gpus-per-pod
+spec:
+  background: false
+  rules:
+    - name: gpus-fit-on-one-node
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              operations:
+                - CREATE
+                - UPDATE
+              namespaceSelector:
+                matchLabels:
+                  gpu-policy: enforced
+      context:
+        # GPUs per node. Change this to match the GPU count of your nodes.
+        - name: maxGpusPerNode
+          variable:
+            value: 4
+      validate:
+        failureAction: Enforce
+        message: "A container requests more nvidia.com/gpu than one node holds ({{ maxGpusPerNode }}). Split the job into more Pods, each requesting at most {{ maxGpusPerNode }} GPUs."
+        deny:
+          conditions:
+            any:
+              - key: '{{ request.object.spec.containers[].resources.limits."nvidia.com/gpu" | [].to_number(@) | max(@) || `0` }}'
+                operator: GreaterThan
+                value: "{{ maxGpusPerNode }}"
+              - key: '{{ request.object.spec.initContainers[].resources.limits."nvidia.com/gpu" || `[]` | [].to_number(@) | max(@) || `0` }}'
+                operator: GreaterThan
+                value: "{{ maxGpusPerNode }}"

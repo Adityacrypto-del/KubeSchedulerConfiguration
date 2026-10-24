@@ -1,0 +1,39 @@
+# Pods that request nvidia.com/gpu must carry a non-empty `team` label, so GPU
+# usage can be attributed. Applies only to namespaces labelled
+# gpu-policy=enforced.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-team-label
+spec:
+  background: false
+  rules:
+    - name: gpu-pods-need-team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              operations:
+                - CREATE
+                - UPDATE
+              namespaceSelector:
+                matchLabels:
+                  gpu-policy: enforced
+      # Extended resources such as nvidia.com/gpu must be set in limits, so
+      # checking limits finds every container that requests a GPU.
+      preconditions:
+        any:
+          - key: '{{ request.object.spec.containers[].resources.limits."nvidia.com/gpu" || `[]` | length(@) }}'
+            operator: GreaterThan
+            value: 0
+          - key: '{{ request.object.spec.initContainers[].resources.limits."nvidia.com/gpu" || `[]` | length(@) }}'
+            operator: GreaterThan
+            value: 0
+      validate:
+        failureAction: Enforce
+        message: "Pods that request nvidia.com/gpu must have a non-empty `team` label, for example `team: ml-team-a`."
+        pattern:
+          metadata:
+            labels:
+              team: "?*"

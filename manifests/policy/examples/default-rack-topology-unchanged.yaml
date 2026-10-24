@@ -1,0 +1,16 @@
+# default-rack-topology leaves this PodGroup unchanged: it sets its own
+# schedulingConstraints (one node, kubernetes.io/hostname).
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PodGroup
+metadata:
+  name: topology-set
+  namespace: ml-team-a
+  labels:
+    app.kubernetes.io/part-of: policy-demo
+spec:
+  schedulingPolicy:
+    gang:
+      minCount: 2
+  schedulingConstraints:
+    topology:
+      - key: kubernetes.io/hostname
