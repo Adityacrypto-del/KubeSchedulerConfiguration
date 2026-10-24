@@ -85,7 +85,7 @@ The 6-pod `gpu-test` Deployment uses 6 GPUs first, leaving 6 free. The trainer j
 | GPUs held by trainer | **6** | **0** |
 | PodGroup `trainer-workers` | n/a | `PodGroupInitiallyScheduled=False`, reason `Unschedulable` |
 
-Without gang, trainer-0 landed on sched-dev-worker2 and trainer-1 and trainer-2 on sched-dev-worker3; trainer-3 stayed Pending:
+Without gang, three trainer Pods were bound: one on the worker gpu-test had left with 2 free GPUs and two on the worker it had left empty. trainer-3 stayed Pending. Which workers these are varies between runs, because the scheduler breaks ties between equally empty nodes at random:
 
 ```text
 0/4 nodes are available: 1 node(s) had untolerated taint(s), 3 Insufficient nvidia.com/gpu.
@@ -114,9 +114,9 @@ The cluster starts empty (12 GPUs free). job-a and job-b need 8 each, and their 
 | Jobs fully started | **none** | **job-a** |
 | PodGroups | n/a | `job-a-workers` `True` (`Scheduled`), `job-b-workers` `False` (`Unschedulable`) |
 
-Without gang, each job got one Pod on each worker (job-a-0 and job-b-0 on sched-dev-worker3, the -1 Pods on sched-dev-worker2, the -2 Pods on sched-dev-worker). Every worker was full and the -3 Pods of both jobs stayed Pending: 12 GPUs in use and neither job able to run.
+Without gang, each job got one Pod on each worker. Every worker was full and the -3 Pods of both jobs stayed Pending: 12 GPUs in use and neither job able to run.
 
-With gang, job-a's 4 Pods were bound together: two on sched-dev-worker3 and two on sched-dev-worker. The bin-packing configuration kept sched-dev-worker2 free. job-b bound nothing:
+With gang, job-a's 4 Pods were bound together and filled two workers, and the bin-packing configuration left the third worker free. Which workers are used varies between runs, because the scheduler breaks ties between equally empty nodes at random. job-b bound nothing:
 
 ```text
 pod group is unschedulable, pod group is unschedulable, 0/1 placements are available,
@@ -124,7 +124,7 @@ first placement status: minCount (4) cannot be satisfied: 2 scheduled, 1 remaini
 pod group preemption: No preemption victims found for incoming preemptor
 ```
 
-As an extra check, the job-a Pods were then deleted. Within about 12 seconds, all 4 job-b Pods were bound (two on sched-dev-worker3, two on sched-dev-worker), and `job-b-workers` changed to `PodGroupInitiallyScheduled=True`. A waiting gang starts as soon as there is room for the whole group.
+As an extra check, the job-a Pods were then deleted. Within about 12 seconds, all 4 job-b Pods were bound, filling two workers, and `job-b-workers` changed to `PodGroupInitiallyScheduled=True`. A waiting gang starts as soon as there is room for the whole group.
 
 ### Differences from expectations
 
