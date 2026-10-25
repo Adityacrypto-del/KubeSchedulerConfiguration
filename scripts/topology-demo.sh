@@ -28,7 +28,7 @@ case "$MODE" in
 esac
 
 echo "== Cleaning up previous demo objects"
-for sel in "$SELECTOR" "app.kubernetes.io/part-of=gang-demo"; do
+for sel in "$SELECTOR" "app.kubernetes.io/part-of=gang-demo" "app.kubernetes.io/part-of=priority-demo"; do
   kubectl delete pods -l "$sel" --ignore-not-found --wait=true
   kubectl delete podgroups.scheduling.k8s.io,workloads.scheduling.k8s.io -l "$sel" --ignore-not-found --wait=true
 done
