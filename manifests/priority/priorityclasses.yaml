@@ -1,0 +1,18 @@
+# PriorityClasses for GPU workloads in KubeSchedulerConfiguration. Neither is
+# the global default, so Pods and PodGroups without a priorityClassName keep
+# priority 0. Both may preempt lower-priority work (the default policy).
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: gpu-high
+value: 1000
+globalDefault: false
+description: "High-priority GPU jobs. May preempt gpu-low work."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: gpu-low
+value: 100
+globalDefault: false
+description: "Low-priority GPU jobs. Can be preempted by gpu-high work."
