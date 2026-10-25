@@ -53,6 +53,7 @@ flowchart TD
 | GenericWorkload feature gate | Turns on the Workload and PodGroup APIs and the `GangScheduling` plugin (beta, off by default in v1.37) | `featureGates` and `runtimeConfig` (`scheduling.k8s.io/v1beta1`) in `kind-config.yaml` |
 | TopologyAwareWorkloadScheduling feature gate | Adds PodGroup `schedulingConstraints.topology`, keeping a group's Pods within one topology domain such as a rack (alpha, off by default in v1.37) | `featureGates` in `kind-config.yaml`; constraints in `manifests/topology/` |
 | Workload / PodGroup | Native gang (all-or-nothing) scheduling for multi-Pod jobs | Manifests in `manifests/gang/`; Pods reference a PodGroup with `spec.schedulingGroup.podGroupName` |
+| PriorityClasses | `gpu-high` and `gpu-low` order pending gangs and let higher-priority gangs preempt lower-priority work (workload-aware preemption, part of `GenericWorkload` in v1.37) | `manifests/priority/priorityclasses.yaml`; PodGroup `priorityClassName` and `disruptionMode` in `manifests/priority/` |
 | Kyverno | Admission-time policy enforcement for GPU workloads in namespaces labelled `gpu-policy=enforced` | Helm chart pinned in `scripts/install-kyverno.sh` with `deploy/kyverno/values.yaml`; `ClusterPolicy` manifests in `policies/` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
 | KWOK | Simulates 1,000 nodes for benchmarks | Node and workload templates in `benchmarks/` |
@@ -100,6 +101,10 @@ With free GPUs spread unevenly across two racks, bin-packing alone placed a 4-po
 ### Policy enforcement
 
 With Kyverno v1.19.2 and four policies scoped to namespaces labelled `gpu-policy=enforced`, GPU Pods without a `team` label, containers asking for more than 4 GPUs and `job-type: distributed` Pods without a PodGroup were all rejected with a message saying what to fix, while their correct counterparts were allowed. A PodGroup created without scheduling constraints was stored with a `topology.rack` constraint added. The gang, topology and bin-packing demos gave the same results as before. Details and reproduction steps are in [docs/policy-enforcement.md](docs/policy-enforcement.md).
+
+### Priority and preemption
+
+With a `gpu-high` blocker holding all 12 GPUs, a `gpu-low` gang and then a `gpu-high` gang waited; once the blocker was deleted, the `gpu-high` gang was placed first even though the `gpu-low` gang had been waiting longer. On a cluster where a `gpu-low` gang with `disruptionMode: all` held 8 GPUs, a `gpu-high` gang needing 8 evicted the whole low gang in every run and then started all 4 of its own Pods; plain `gpu-low` Pods without a PodGroup were sometimes evicted only in part (2 of 4 in one run of eight). Details and reproduction steps are in [docs/priority-and-preemption.md](docs/priority-and-preemption.md).
 
 ## Roadmap
 
