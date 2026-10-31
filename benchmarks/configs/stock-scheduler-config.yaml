@@ -1,0 +1,8 @@
+# Benchmark config "stock": the default kube-scheduler profile. Only the client
+# connection is set (cluster.sh adds the same qps and burst to every config),
+# so plugins, weights and scoring are the upstream defaults (LeastAllocated).
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  # Replaced by kwokctl with the path of its own kubeconfig.
+  kubeconfig: /etc/kubernetes/scheduler.conf
