@@ -1,0 +1,2 @@
+# Keep the benchmark scripts out of GitHub's language statistics.
+benchmarks/*.py linguist-detectable=false
