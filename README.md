@@ -55,6 +55,7 @@ flowchart TD
 | Workload / PodGroup | Native gang (all-or-nothing) scheduling for multi-Pod jobs | Manifests in `manifests/gang/`; Pods reference a PodGroup with `spec.schedulingGroup.podGroupName` |
 | PriorityClasses | `gpu-high` and `gpu-low` order pending gangs and let higher-priority gangs preempt lower-priority work (workload-aware preemption, part of `GenericWorkload` in v1.37) | `manifests/priority/priorityclasses.yaml`; PodGroup `priorityClassName` and `disruptionMode` in `manifests/priority/` |
 | Kyverno | Admission-time policy enforcement for GPU workloads in namespaces labelled `gpu-policy=enforced` | Helm chart pinned in `scripts/install-kyverno.sh` with `deploy/kyverno/values.yaml`; `ClusterPolicy` manifests in `policies/` |
+| Argo CD | GitOps: keeps Kyverno, the policies, the PriorityClasses and the `ml-team-a` namespace in sync with `main` and reverts changes made by hand | Helm chart pinned in `scripts/install-argocd.sh` with `deploy/argocd/values.yaml`; app of apps in `gitops/`, installed by `scripts/bootstrap-gitops.sh` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
 | KWOK | Simulates 1,000 GPU nodes for the scale benchmark, in a separate `sched-bench` cluster created by kwokctl with v1.37 control plane components | `benchmarks/kwokctl.yaml` and per-config scheduler settings in `benchmarks/configs/`; nodes and workload created by scripts in `benchmarks/` |
 | NVIDIA GPU Operator | Drivers, device plugin, feature discovery and metrics on real hardware | Helm values |
@@ -110,6 +111,10 @@ With a `gpu-high` blocker holding all 12 GPUs, a `gpu-low` gang and then a `gpu-
 
 On 1,000 KWOK nodes (8,000 simulated GPUs) with an identical job mix asking for 120% of capacity, median of 3 runs each: the stock scheduler used 85.6% of GPUs, left 1,150 stranded and placed 17 of 60 large 8 × 8-GPU jobs. Bin-packing used 100% of GPUs, stranded none and placed 50, but 4 jobs were left partly placed, holding 62 GPUs. Adding gang scheduling left no job partly placed and placed 51. Adding the rack topology constraint kept all 517 placed multi-Pod jobs within one rack (51% without it) with no fewer jobs placed, at a cost of p99 scheduling latency rising from 2.9 to 5.4 seconds. Details, metric definitions and limitations are in [docs/benchmark.md](docs/benchmark.md).
 
+### GitOps
+
+With Argo CD v3.5.6 managing Kyverno, the four policies, the PriorityClasses and the `ml-team-a` namespace from `main` through an app of apps, it took over the objects already installed by hand in 19 seconds without recreating any of them, and all four policies stayed Ready throughout. A policy deleted with `kubectl` was restored, and a policy message changed by hand was reverted, each within 1 second; a change on a branch reached the cluster 2 seconds after one Application was pointed at it and was gone 1 second after it was pointed back. The policy, gang, topology, preemption and bin-packing demos gave the same results as before. Details and reproduction steps are in [docs/gitops.md](docs/gitops.md).
+
 ## Roadmap
 
 | Phase | Goal | Approach |
@@ -155,6 +160,14 @@ kubectl get nodes
 ```
 
 You should see one control-plane node and three workers, all `Ready`.
+
+To have Argo CD install Kyverno, the policies, the PriorityClasses and the `ml-team-a` namespace from this repository and keep them in sync, run:
+
+```bash
+./scripts/bootstrap-gitops.sh
+```
+
+See [docs/gitops.md](docs/gitops.md) for what it manages and how to open the Argo CD UI.
 
 ### Clean up
 
