@@ -1,0 +1,14 @@
+# kwokctl settings shared by every sched-bench cluster in the
+# KubeSchedulerConfiguration benchmark. The scheduler config, feature gates and
+# runtime config differ per benchmark config and are passed by cluster.sh.
+kind: KwokctlConfiguration
+apiVersion: config.kwok.x-k8s.io/v1alpha1
+options:
+  # Control plane components run as containers (OrbStack on macOS).
+  runtime: docker
+  # v1.37 images, matching the kind cluster's GenericWorkload and
+  # TopologyAwareWorkloadScheduling features. kwokctl v0.8.0 defaults to v1.36.1.
+  kubeVersion: v1.37.0
+  # Lift client rate limits and the apiserver's in-flight request limits, so
+  # the benchmark measures the scheduler rather than client throttling.
+  disableQPSLimits: true
