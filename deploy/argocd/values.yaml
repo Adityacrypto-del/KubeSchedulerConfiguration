@@ -1,0 +1,35 @@
+# Helm values for Argo CD in KubeSchedulerConfiguration.
+# Chart argo/argo-cd, pinned in scripts/install-argocd.sh.
+# Only settings that differ from the chart defaults are listed here.
+
+# Components this setup does not use. Leaving them out saves memory on a
+# laptop-sized kind cluster.
+dex:
+  # No SSO: log in as the local admin user.
+  enabled: false
+notifications:
+  enabled: false
+applicationSet:
+  # The app-of-apps in gitops/ uses plain Applications, no ApplicationSets.
+  replicas: 0
+
+configs:
+  cm:
+    # Argo CD does not assess the health of Application resources by default,
+    # so the root Application would not wait for one sync wave to become
+    # Healthy before starting the next. This check reports a child
+    # Application's own health, so Kyverno is Healthy before the policies
+    # Application is synced.
+    resource.customizations.health.argoproj.io_Application: |
+      hs = {}
+      hs.status = "Progressing"
+      hs.message = ""
+      if obj.status ~= nil then
+        if obj.status.health ~= nil then
+          hs.status = obj.status.health.status
+          if obj.status.health.message ~= nil then
+            hs.message = obj.status.health.message
+          end
+        end
+      end
+      return hs
