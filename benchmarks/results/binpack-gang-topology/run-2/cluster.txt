@@ -1,0 +1,7 @@
+config: binpack-gang-topology
+kwokctl: kwokctl version v0.8.0 go1.26.4 (darwin/arm64)
+Server Version: v1.37.0
+feature gates: GenericWorkload=true,TopologyAwareWorkloadScheduling=true
+workload mode: gang-topology
+rate: 1000 Pods/s, seed: 42
+started: 2026-10-27T09:33:44Z

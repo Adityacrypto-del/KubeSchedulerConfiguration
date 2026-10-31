@@ -1,0 +1,52 @@
+{
+  "mode": "gang",
+  "seed": 42,
+  "rate_pods_per_s": 1000.0,
+  "pods_submitted": 3724,
+  "submit_errors": 0,
+  "submit_seconds": 3.7,
+  "pods_bound": 3069,
+  "throughput_pods_per_s": 511.6,
+  "bind_window_s": 6.0,
+  "latency_p50_s": 1.731,
+  "latency_p95_s": 2.779,
+  "latency_p99_s": 2.866,
+  "gpu_capacity": 8000,
+  "gpus_bound": 8000,
+  "gpu_utilisation": 1.0,
+  "stranded_gpus": 0,
+  "nodes_fully_free": 0,
+  "multi_pod_jobs": 625,
+  "multi_pod_fully_placed": 517,
+  "multi_pod_partially_placed": 0,
+  "multi_pod_not_placed": 108,
+  "gpus_held_by_partial_jobs": 0,
+  "large_jobs": 60,
+  "large_jobs_fully_placed": 51,
+  "multi_pod_one_rack_fraction": 0.4913,
+  "medium_one_rack_fraction": 0.5451,
+  "large_one_rack_fraction": 0.0,
+  "jobs_by_kind": {
+    "small": {
+      "jobs": 1563,
+      "fully": 1278,
+      "partially": 0,
+      "not": 285
+    },
+    "medium": {
+      "jobs": 565,
+      "fully": 466,
+      "partially": 0,
+      "not": 99
+    },
+    "large": {
+      "jobs": 60,
+      "fully": 51,
+      "partially": 0,
+      "not": 9
+    }
+  },
+  "max_clock_gap_s": 0.62,
+  "interrupted": false,
+  "watch_restarts": 0
+}

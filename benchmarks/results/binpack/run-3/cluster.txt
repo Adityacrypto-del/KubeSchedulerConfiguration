@@ -1,0 +1,7 @@
+config: binpack
+kwokctl: kwokctl version v0.8.0 go1.26.4 (darwin/arm64)
+Server Version: v1.37.0
+feature gates: none
+workload mode: plain
+rate: 1000 Pods/s, seed: 42
+started: 2026-10-25T19:38:15Z

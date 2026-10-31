@@ -1,0 +1,322 @@
+{
+  "stock": {
+    "throughput_pods_per_s": {
+      "median": 434.1,
+      "min": 394.1,
+      "max": 449.3,
+      "runs": 3
+    },
+    "latency_p50_s": {
+      "median": 2.008,
+      "min": 1.805,
+      "max": 2.15,
+      "runs": 3
+    },
+    "latency_p95_s": {
+      "median": 3.825,
+      "min": 3.59,
+      "max": 4.536,
+      "runs": 3
+    },
+    "latency_p99_s": {
+      "median": 3.993,
+      "min": 3.719,
+      "max": 4.76,
+      "runs": 3
+    },
+    "pods_bound": {
+      "median": 3380,
+      "min": 3380,
+      "max": 3380,
+      "runs": 3
+    },
+    "gpu_utilisation": {
+      "median": 0.8562,
+      "min": 0.8562,
+      "max": 0.8562,
+      "runs": 3
+    },
+    "stranded_gpus": {
+      "median": 1150,
+      "min": 1150,
+      "max": 1150,
+      "runs": 3
+    },
+    "multi_pod_fully_placed": {
+      "median": 582,
+      "min": 582,
+      "max": 582,
+      "runs": 3
+    },
+    "multi_pod_partially_placed": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_not_placed": {
+      "median": 43,
+      "min": 43,
+      "max": 43,
+      "runs": 3
+    },
+    "gpus_held_by_partial_jobs": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "large_jobs_fully_placed": {
+      "median": 17,
+      "min": 17,
+      "max": 17,
+      "runs": 3
+    },
+    "multi_pod_one_rack_fraction": {
+      "median": 0.0069,
+      "min": 0.0052,
+      "max": 0.0086,
+      "runs": 3
+    }
+  },
+  "binpack": {
+    "throughput_pods_per_s": {
+      "median": 523.4,
+      "min": 463.1,
+      "max": 531.7,
+      "runs": 3
+    },
+    "latency_p50_s": {
+      "median": 1.46,
+      "min": 1.248,
+      "max": 1.891,
+      "runs": 3
+    },
+    "latency_p95_s": {
+      "median": 2.684,
+      "min": 2.568,
+      "max": 3.418,
+      "runs": 3
+    },
+    "latency_p99_s": {
+      "median": 2.796,
+      "min": 2.637,
+      "max": 3.488,
+      "runs": 3
+    },
+    "pods_bound": {
+      "median": 3076,
+      "min": 3075,
+      "max": 3076,
+      "runs": 3
+    },
+    "gpu_utilisation": {
+      "median": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "runs": 3
+    },
+    "stranded_gpus": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_fully_placed": {
+      "median": 516,
+      "min": 516,
+      "max": 516,
+      "runs": 3
+    },
+    "multi_pod_partially_placed": {
+      "median": 4,
+      "min": 4,
+      "max": 5,
+      "runs": 3
+    },
+    "multi_pod_not_placed": {
+      "median": 105,
+      "min": 104,
+      "max": 105,
+      "runs": 3
+    },
+    "gpus_held_by_partial_jobs": {
+      "median": 62,
+      "min": 60,
+      "max": 64,
+      "runs": 3
+    },
+    "large_jobs_fully_placed": {
+      "median": 50,
+      "min": 50,
+      "max": 50,
+      "runs": 3
+    },
+    "multi_pod_one_rack_fraction": {
+      "median": 0.1512,
+      "min": 0.1473,
+      "max": 0.1609,
+      "runs": 3
+    }
+  },
+  "binpack-gang": {
+    "throughput_pods_per_s": {
+      "median": 511.6,
+      "min": 449.8,
+      "max": 575.4,
+      "runs": 3
+    },
+    "latency_p50_s": {
+      "median": 1.731,
+      "min": 1.067,
+      "max": 2.112,
+      "runs": 3
+    },
+    "latency_p95_s": {
+      "median": 2.779,
+      "min": 2.129,
+      "max": 3.589,
+      "runs": 3
+    },
+    "latency_p99_s": {
+      "median": 2.866,
+      "min": 2.2,
+      "max": 3.709,
+      "runs": 3
+    },
+    "pods_bound": {
+      "median": 3069,
+      "min": 3069,
+      "max": 3069,
+      "runs": 3
+    },
+    "gpu_utilisation": {
+      "median": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "runs": 3
+    },
+    "stranded_gpus": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_fully_placed": {
+      "median": 517,
+      "min": 517,
+      "max": 517,
+      "runs": 3
+    },
+    "multi_pod_partially_placed": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_not_placed": {
+      "median": 108,
+      "min": 108,
+      "max": 108,
+      "runs": 3
+    },
+    "gpus_held_by_partial_jobs": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "large_jobs_fully_placed": {
+      "median": 51,
+      "min": 51,
+      "max": 51,
+      "runs": 3
+    },
+    "multi_pod_one_rack_fraction": {
+      "median": 0.5145,
+      "min": 0.4913,
+      "max": 0.5184,
+      "runs": 3
+    }
+  },
+  "binpack-gang-topology": {
+    "throughput_pods_per_s": {
+      "median": 359.5,
+      "min": 350.4,
+      "max": 364.3,
+      "runs": 3
+    },
+    "latency_p50_s": {
+      "median": 3.554,
+      "min": 3.531,
+      "max": 3.631,
+      "runs": 3
+    },
+    "latency_p95_s": {
+      "median": 5.275,
+      "min": 5.206,
+      "max": 5.511,
+      "runs": 3
+    },
+    "latency_p99_s": {
+      "median": 5.412,
+      "min": 5.3,
+      "max": 5.645,
+      "runs": 3
+    },
+    "pods_bound": {
+      "median": 3069,
+      "min": 3069,
+      "max": 3069,
+      "runs": 3
+    },
+    "gpu_utilisation": {
+      "median": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "runs": 3
+    },
+    "stranded_gpus": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_fully_placed": {
+      "median": 517,
+      "min": 517,
+      "max": 517,
+      "runs": 3
+    },
+    "multi_pod_partially_placed": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "multi_pod_not_placed": {
+      "median": 108,
+      "min": 108,
+      "max": 108,
+      "runs": 3
+    },
+    "gpus_held_by_partial_jobs": {
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "large_jobs_fully_placed": {
+      "median": 51,
+      "min": 51,
+      "max": 51,
+      "runs": 3
+    },
+    "multi_pod_one_rack_fraction": {
+      "median": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "runs": 3
+    }
+  }
+}
