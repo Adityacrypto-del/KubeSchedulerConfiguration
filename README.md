@@ -56,7 +56,7 @@ flowchart TD
 | PriorityClasses | `gpu-high` and `gpu-low` order pending gangs and let higher-priority gangs preempt lower-priority work (workload-aware preemption, part of `GenericWorkload` in v1.37) | `manifests/priority/priorityclasses.yaml`; PodGroup `priorityClassName` and `disruptionMode` in `manifests/priority/` |
 | Kyverno | Admission-time policy enforcement for GPU workloads in namespaces labelled `gpu-policy=enforced` | Helm chart pinned in `scripts/install-kyverno.sh` with `deploy/kyverno/values.yaml`; `ClusterPolicy` manifests in `policies/` |
 | Volcano or Kueue | Batch and gang scheduling for comparison | Helm values |
-| KWOK | Simulates 1,000 nodes for benchmarks | Node and workload templates in `benchmarks/` |
+| KWOK | Simulates 1,000 GPU nodes for the scale benchmark, in a separate `sched-bench` cluster created by kwokctl with v1.37 control plane components | `benchmarks/kwokctl.yaml` and per-config scheduler settings in `benchmarks/configs/`; nodes and workload created by scripts in `benchmarks/` |
 | NVIDIA GPU Operator | Drivers, device plugin, feature discovery and metrics on real hardware | Helm values |
 
 ## How it works
@@ -105,6 +105,10 @@ With Kyverno v1.19.2 and four policies scoped to namespaces labelled `gpu-policy
 ### Priority and preemption
 
 With a `gpu-high` blocker holding all 12 GPUs, a `gpu-low` gang and then a `gpu-high` gang waited; once the blocker was deleted, the `gpu-high` gang was placed first even though the `gpu-low` gang had been waiting longer. On a cluster where a `gpu-low` gang with `disruptionMode: all` held 8 GPUs, a `gpu-high` gang needing 8 evicted the whole low gang in every run and then started all 4 of its own Pods; plain `gpu-low` Pods without a PodGroup were sometimes evicted only in part (2 of 4 in one run of eight). Details and reproduction steps are in [docs/priority-and-preemption.md](docs/priority-and-preemption.md).
+
+### Scale benchmark
+
+On 1,000 KWOK nodes (8,000 simulated GPUs) with an identical job mix asking for 120% of capacity, median of 3 runs each: the stock scheduler used 85.6% of GPUs, left 1,150 stranded and placed 17 of 60 large 8 × 8-GPU jobs. Bin-packing used 100% of GPUs, stranded none and placed 50, but 4 jobs were left partly placed, holding 62 GPUs. Adding gang scheduling left no job partly placed and placed 51. Adding the rack topology constraint kept all 517 placed multi-Pod jobs within one rack (51% without it) with no fewer jobs placed, at a cost of p99 scheduling latency rising from 2.9 to 5.4 seconds. Details, metric definitions and limitations are in [docs/benchmark.md](docs/benchmark.md).
 
 ## Roadmap
 
