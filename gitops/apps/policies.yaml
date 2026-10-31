@@ -1,0 +1,22 @@
+# The Kyverno ClusterPolicies in policies/.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: policies
+  namespace: argocd
+  annotations:
+    # Wave 1: after Kyverno (wave 0) is Healthy, so the ClusterPolicy CRD and
+    # the admission webhooks exist when the policies are applied.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Adityacrypto-del/KubeSchedulerConfiguration.git
+    targetRevision: main
+    path: policies
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

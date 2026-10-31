@@ -1,0 +1,22 @@
+# Root Application for KubeSchedulerConfiguration (app-of-apps). It syncs the
+# Application manifests in gitops/apps/ from the main branch, and those
+# Applications deploy Kyverno, the Kyverno policies and the platform objects.
+# Applied once by scripts/bootstrap-gitops.sh; everything else comes from Git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Adityacrypto-del/KubeSchedulerConfiguration.git
+    targetRevision: main
+    path: gitops/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

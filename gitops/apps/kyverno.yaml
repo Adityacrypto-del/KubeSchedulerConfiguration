@@ -1,0 +1,38 @@
+# Kyverno, from its Helm chart at the version pinned in
+# scripts/install-kyverno.sh, with values from deploy/kyverno/values.yaml in
+# this repository. Two sources: the chart, and this repository as $values.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno
+  namespace: argocd
+  annotations:
+    # Wave 0: Kyverno and its CRDs are Healthy before the policies (wave 1).
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  sources:
+    - repoURL: https://kyverno.github.io/kyverno/
+      chart: kyverno
+      targetRevision: 3.9.2   # Kyverno v1.19.2, same as scripts/install-kyverno.sh
+      helm:
+        # Same release name as scripts/install-kyverno.sh, so Argo CD renders
+        # the same object names and adopts the existing objects in place.
+        releaseName: kyverno
+        valueFiles:
+          - $values/deploy/kyverno/values.yaml
+    - repoURL: https://github.com/Adityacrypto-del/KubeSchedulerConfiguration.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # The Kyverno CRDs are too large for client-side apply, which stores the
+      # whole object in the last-applied-configuration annotation (256 KiB limit).
+      - ServerSideApply=true

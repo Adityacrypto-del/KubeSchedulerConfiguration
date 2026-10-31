@@ -1,0 +1,26 @@
+# Cluster-wide objects the GPU workloads rely on: the gpu-high and gpu-low
+# PriorityClasses and the ml-team-a namespace that the Kyverno policies apply
+# to. The files stay where the demos and docs expect them.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Adityacrypto-del/KubeSchedulerConfiguration.git
+    targetRevision: main
+    path: manifests
+    directory:
+      recurse: true
+      # Only these two files; the rest of manifests/ are demo workloads.
+      include: "{priority/priorityclasses.yaml,policy/namespace.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
